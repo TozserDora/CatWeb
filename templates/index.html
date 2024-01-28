@@ -1,0 +1,51 @@
+{%extends 'base.html'%}
+
+
+{% block content %}
+
+<!--Hero with 2 buttons-->
+<div class="px-4 py-5 my-5 text-center">
+    <img class="d-block mx-auto mb-4" src="static/assets/img/fishbone.png" alt="" width="144" height="114">
+    <h1 class="display-5 fw-bold text-body-emphasis">Welcome!</h1>
+    <div class="col-lg-6 mx-auto">
+      <p class="lead mb-4">Check out these cute little fluffballs! <br> If you wish to contribute, log in or sign up!</p>
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <button type="button" class="btn btn-primary btn-lg px-4 gap-3" onclick="window.location.href='{{ url_for('log_in') }}'">Log in</button>
+        <button type="button" class="btn btn-outline-secondary btn-lg px-4" onclick="window.location.href='{{ url_for('sign_up') }}'">Sign up</button>
+      </div>
+    </div>
+  </div>
+
+{% for post in all_posts %}
+
+
+<div class="row mb-4">
+  <div class="col-md-6 d-flex align-items-center">
+
+    <!--Left side - texts-->
+    <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+        <div class="col p-4 d-flex flex-column position-static" id="text-frame">
+          <h3 class="mb-3">{{post.title}}</h3>
+          <p class="card-text mb-3">{{post.description}}</p>
+          <div class="mb-0 text-body-secondary">Posted by: Dori</div>
+          <div class="mb-0 text-body-secondary">{{post.date}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!--Right side - picture-->
+    <div class="col-md-6 d-flex align-items-center">
+      <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+        <div class="col p-4 d-flex flex-column position-static" id="picture-frame">
+          <img src={{post.img_url}}>
+        </div>
+    </div>
+  </div>
+
+  <!--Separator line-->
+  <hr class="my-4 bg-white" style="height: 3px;" />
+
+</div>
+{% endfor %}
+
+{% endblock %}
