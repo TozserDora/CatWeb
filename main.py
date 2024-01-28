@@ -11,7 +11,7 @@ from sqlalchemy import Integer, String, Text
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
-app.config['SECRET_KEY'] = 'A_SECRET_KEY'
+app.config['SECRET_KEY'] = os.environ.get("SECRETKEY")
 
 
 # Create the database
