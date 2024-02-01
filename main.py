@@ -7,11 +7,15 @@ from datetime import datetime as dt
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, Text
+from flask_ckeditor import CKEditor
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 app.config['SECRET_KEY'] = os.environ.get("SECRETKEY")
+ckeditor = CKEditor(app)
 
 
 # Create the database
@@ -22,6 +26,21 @@ class Base(DeclarativeBase):
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
+
+# Configure Flask-Login's Login Manager
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+# Create a user_loader callback
+@login_manager.user_loader
+def load_user(user_id):
+    return db.get_or_404(User, user_id)
+
+
+@app.context_processor
+def inject_user():
+    return dict(current_user=current_user)
 
 
 # Create cat_posts table
@@ -36,8 +55,19 @@ class CatPost(db.Model):
     # author = relationship("User", back_populates="posts")
     # comments = relationship("Comment", back_populates="parent_post")
 
+
+# Create users table
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(String(250), nullable=False)
+
+
 with app.app_context():
     db.create_all()
+
 
 # Home page with all posts
 @app.route('/')
@@ -51,7 +81,23 @@ def home():
 def sign_up():
     form = SignUpForm()
     if form.validate_on_submit():
-        return redirect(url_for('home'))
+        password = form.password.data
+        password_2 = form.password_2.data
+
+        if password == password_2:
+            password_hashed_salted = generate_password_hash(password, method="pbkdf2:sha256", salt_length=8)
+            new_user = User(
+                username=form.user.data,
+                email=form.email.data,
+                password=password_hashed_salted
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+            return redirect(url_for('home'))
+        else:
+            return render_template('signup.html', form=form)
+
     return render_template('signup.html', form=form)
 
 
@@ -59,9 +105,26 @@ def sign_up():
 def log_in():
     form = LogInForm()
     if form.validate_on_submit():
-        pass
-        # return redirect('check_user')
+        email = form.email.data
+        typed_password = form.password.data
+
+        # Find user by email
+        result = db.session.execute(db.select(User).where(User.email == email))
+        user = result.scalar()
+
+        # Check stored password hash against entered password hashed.
+        if user and check_password_hash(user.password, typed_password):
+            login_user(user)
+            return redirect(url_for('home'))
+        else:
+            flash("Invalid email or password. Please try again.")
     return render_template('login.html', form=form)
+
+
+@app.route('/logout')
+def log_out():
+    logout_user()
+    return redirect(url_for('home'))
 
 
 # Upload picture with title and description --> Add to database

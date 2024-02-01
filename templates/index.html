@@ -4,6 +4,7 @@
 {% block content %}
 
 <!--Hero with 2 buttons-->
+{% if not current_user.is_authenticated %}
 <div class="px-4 py-5 my-5 text-center">
     <img class="d-block mx-auto mb-4" src="static/assets/img/fishbone.png" alt="" width="144" height="114">
     <h1 class="display-5 fw-bold text-body-emphasis">Welcome!</h1>
@@ -15,7 +16,7 @@
       </div>
     </div>
   </div>
-
+{% endif %}
 {% for post in all_posts %}
 
 

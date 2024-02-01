@@ -10807,3 +10807,9 @@ body {background-color: Wheat;}
     color: White; /* Set text color to white or an appropriate color for visibility */
     /* Add any other styling as needed */
   }
+
+.flash_message {
+    color: red;
+    text-align: center;
+    font-weight: bold
+}
